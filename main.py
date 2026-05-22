@@ -5,7 +5,7 @@ from pydantic import BaseModel
 from langchain_community.document_loaders import YoutubeLoader, WebBaseLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
-from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
 
@@ -30,9 +30,8 @@ llm = ChatGoogleGenerativeAI(
 )
 
 # ─── Embeddings ────────────────────────────────────────────
-embeddings = HuggingFaceEmbeddings(
-    model_name="sentence-transformers/all-MiniLM-L6-v2",
-    cache_folder="/tmp/embeddings"
+embeddings = GoogleGenerativeAIEmbeddings(
+    model="models/embedding-001"
 )
 
 # ─── Prompt ────────────────────────────────────────────────
