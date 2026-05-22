@@ -4,15 +4,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from langchain_community.document_loaders import YoutubeLoader, WebBaseLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import FAISS
-from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 
 # ─── App ───────────────────────────────────────────────────
 app = FastAPI()
 
-# ─── CORS (allows Chrome Extension to call this API) ───────
+# ─── CORS ──────────────────────────────────────────────────
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -21,18 +22,13 @@ app.add_middleware(
 )
 
 # ─── API Key ───────────────────────────────────────────────
-os.environ["GOOGLE_API_KEY"] = os.getenv("GOOGLE_API_KEY")
+os.environ["GOOGLE_API_KEY"] = os.getenv("GOOGLE_API_KEY", "")
 
 # ─── LLM ───────────────────────────────────────────────────
 llm = ChatGoogleGenerativeAI(
     model="gemini-2.5-flash",
     temperature=0.3
 )
-
-# ─── Embeddings ────────────────────────────────────────────
-# embeddings = GoogleGenerativeAIEmbeddings(
-#     model="models/embedding-001"
-# )
 
 # ─── Prompt ────────────────────────────────────────────────
 prompt_template = PromptTemplate(
@@ -59,27 +55,34 @@ Answer:
     input_variables=["context", "question"]
 )
 
-# ─── In-memory retriever store ─────────────────────────────
-# Stores retriever per URL so we don't reload every time
-retriever_store = {}
+# ─── In-memory store ───────────────────────────────────────
+source_store = {}
 
 # ─── Request Models ────────────────────────────────────────
 class LoadRequest(BaseModel):
     url: str
-    source_type: str  # "youtube" or "website"
+    source_type: str
 
 class AskRequest(BaseModel):
     url: str
     question: str
 
+# ─── TF-IDF Retriever ──────────────────────────────────────
+class TFIDFRetriever:
+    def __init__(self, chunks):
+        self.chunks = chunks
+        self.texts = [c.page_content for c in chunks]
+        self.vectorizer = TfidfVectorizer()
+        self.matrix = self.vectorizer.fit_transform(self.texts)
+
+    def get_relevant(self, question, k=3):
+        q_vec = self.vectorizer.transform([question])
+        scores = cosine_similarity(q_vec, self.matrix).flatten()
+        top_k = np.argsort(scores)[-k:][::-1]
+        return [self.chunks[i] for i in top_k]
+
 # ─── RAG Function ──────────────────────────────────────────
 def create_rag(url, source_type):
-    embeddings = GoogleGenerativeAIEmbeddings(
-    model="models/text-embedding-004",
-    task_type="retrieval_document",
-    google_api_key=os.getenv("GOOGLE_API_KEY")
-)
-
     if source_type == "youtube":
         loader = YoutubeLoader.from_youtube_url(
             url,
@@ -98,58 +101,41 @@ def create_rag(url, source_type):
         chunk_overlap=200
     )
     chunks = splitter.split_documents(documents)
+    retriever = TFIDFRetriever(chunks)
 
-    db = FAISS.from_documents(chunks, embeddings)
-
-    retriever = db.as_retriever(
-        search_type="similarity",
-        search_kwargs={"k": 3}
-    )
     return retriever, len(chunks)
 
-
 # ─── Routes ────────────────────────────────────────────────
-
 @app.get("/")
 def home():
     return {"status": "QueryMind RAG API is running! 🚀"}
 
-
 @app.post("/load")
 def load_source(req: LoadRequest):
-    """Load a YouTube video or Website and create RAG"""
     try:
         retriever, chunks = create_rag(req.url, req.source_type)
-        retriever_store[req.url] = retriever  # save in memory
+        source_store[req.url] = retriever
         return {
             "status": "success",
             "chunks": chunks,
-            "message": f"Loaded successfully! {chunks} chunks created."
+            "message": f"Loaded! {chunks} chunks created."
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
 @app.post("/ask")
 def ask_question(req: AskRequest):
-    """Ask a question about a loaded source"""
     try:
-        # Check if source is loaded
-        if req.url not in retriever_store:
+        if req.url not in source_store:
             raise HTTPException(
                 status_code=400,
                 detail="Source not loaded! Please call /load first."
             )
 
-        retriever = retriever_store[req.url]
+        retriever = source_store[req.url]
+        relevant_chunks = retriever.get_relevant(req.question)
+        context = "\n\n".join([c.page_content for c in relevant_chunks])
 
-        # Get relevant chunks
-        relevant_chunks = retriever.invoke(req.question)
-        context = "\n\n".join(
-            [chunk.page_content for chunk in relevant_chunks]
-        )
-
-        # Build prompt and call LLM
         final_prompt = prompt_template.format(
             context=context,
             question=req.question
