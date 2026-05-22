@@ -75,8 +75,10 @@ class AskRequest(BaseModel):
 # ─── RAG Function ──────────────────────────────────────────
 def create_rag(url, source_type):
     embeddings = GoogleGenerativeAIEmbeddings(
-        model="models/text-embedding-004"
-    )
+    model="models/text-embedding-004",
+    task_type="retrieval_document",
+    google_api_key=os.getenv("GOOGLE_API_KEY")
+)
 
     if source_type == "youtube":
         loader = YoutubeLoader.from_youtube_url(
