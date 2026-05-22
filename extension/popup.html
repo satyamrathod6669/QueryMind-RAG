@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>QueryMind RAG</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 360px;
+      padding: 16px;
+      font-family: Arial, sans-serif;
+      background: #1a1a2e;
+      color: #eee;
+    }
+    h2 {
+      color: #e94560;
+      text-align: center;
+      margin-bottom: 4px;
+      font-size: 18px;
+    }
+    .subtitle {
+      text-align: center;
+      font-size: 11px;
+      color: #aaa;
+      margin-bottom: 12px;
+    }
+    .url-bar {
+      background: #16213e;
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      color: #aaa;
+      margin-bottom: 10px;
+      word-break: break-all;
+      border-left: 3px solid #e94560;
+    }
+    .source-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .badge-youtube { background: #ff0000; color: white; }
+    .badge-website { background: #0f3460; color: white; }
+    button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 8px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: bold;
+      transition: opacity 0.2s;
+    }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    #loadBtn { background: #e94560; color: white; }
+    #askBtn { background: #0f3460; color: white; }
+    textarea {
+      width: 100%;
+      padding: 8px;
+      border-radius: 6px;
+      border: 1px solid #333;
+      background: #16213e;
+      color: #eee;
+      font-size: 13px;
+      resize: none;
+      margin-bottom: 8px;
+    }
+    #status {
+      font-size: 12px;
+      text-align: center;
+      margin: 6px 0;
+      min-height: 16px;
+      color: #4ecca3;
+    }
+    #status.error { color: #e94560; }
+    #answer {
+      background: #16213e;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      line-height: 1.6;
+      margin-top: 8px;
+      display: none;
+      max-height: 220px;
+      overflow-y: auto;
+      border-left: 3px solid #4ecca3;
+    }
+    .divider {
+      border: none;
+      border-top: 1px solid #333;
+      margin: 10px 0;
+    }
+    .footer {
+      text-align: center;
+      font-size: 10px;
+      color: #555;
+      margin-top: 8px;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>🤖 QueryMind</h2>
+  <p class="subtitle">Ask anything from this page!</p>
+
+  <div class="url-bar" id="currentUrl">Detecting page...</div>
+  <div id="sourceBadge"></div>
+
+  <button id="loadBtn">🔍 Load This Page</button>
+  <div id="status"></div>
+
+  <hr class="divider">
+
+  <textarea id="questionInput" rows="3"
+    placeholder="Ask your question..."
+    style="display:none"></textarea>
+  <button id="askBtn" style="display:none">💬 Ask</button>
+
+  <div id="answer"></div>
+
+  <p class="footer">Powered by Gemini AI ✨</p>
+
+  <script src="popup.js"></script>
+</body>
+</html>
