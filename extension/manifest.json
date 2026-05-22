@@ -11,8 +11,7 @@
     "https://querymind-rag.onrender.com/*"
   ],
   "action": {
-    "default_popup": "popup.html",
-    "default_icon": "icon.png"
+    "default_popup": "popup.html"
   },
   "content_scripts": [
     {
