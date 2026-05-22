@@ -21,7 +21,7 @@ app.add_middleware(
 )
 
 # ─── API Key ───────────────────────────────────────────────
-os.environ["GOOGLE_API_KEY"] = "YOUR_GEMINI_API_KEY_HERE"
+os.environ["GOOGLE_API_KEY"] = os.getenv("GOOGLE_API_KEY")
 
 # ─── LLM ───────────────────────────────────────────────────
 llm = ChatGoogleGenerativeAI(
