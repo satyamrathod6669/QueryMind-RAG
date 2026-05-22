@@ -75,7 +75,7 @@ class TFIDFRetriever:
         self.vectorizer = TfidfVectorizer()
         self.matrix = self.vectorizer.fit_transform(self.texts)
 
-    def get_relevant(self, question, k=3):
+    def get_relevant(self, question, k=10):
         q_vec = self.vectorizer.transform([question])
         scores = cosine_similarity(q_vec, self.matrix).flatten()
         top_k = np.argsort(scores)[-k:][::-1]
@@ -133,7 +133,7 @@ def ask_question(req: AskRequest):
             )
 
         retriever = source_store[req.url]
-        relevant_chunks = retriever.get_relevant(req.question)
+        relevant_chunks = retriever.get_relevant(req.question,k=10)
         context = "\n\n".join([c.page_content for c in relevant_chunks])
 
         final_prompt = prompt_template.format(
