@@ -2,7 +2,7 @@ import os
 import streamlit as st
 from langchain_community.document_loaders import YoutubeLoader, WebBaseLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma
+from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
@@ -77,7 +77,7 @@ def create_rag(source, source_type="youtube"):
     )
     chunks = splitter.split_documents(documents)
 
-    db = Chroma.from_documents(chunks, embeddings)
+    db = FAISS.from_documents(chunks, embeddings)
 
     retriever = db.as_retriever(
         search_type="similarity",
