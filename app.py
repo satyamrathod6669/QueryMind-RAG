@@ -1,11 +1,12 @@
 import os
 import streamlit as st
-from langchain_community.document_loaders import YoutubeLoader, WebBaseLoader
+from langchain_community.document_loaders import WebBaseLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import PromptTemplate
+from langchain_core.documents import Document
 
 # ─── Page Config ───────────────────────────────────────────
 st.set_page_config(
@@ -59,16 +60,29 @@ Answer:
 )
 
 # ─── RAG Functions ─────────────────────────────────────────
-def create_rag(source, source_type="youtube"):
-    if source_type == "youtube":
-        loader = YoutubeLoader.from_youtube_url(
-            source,
-            add_video_info=False,
-            language=["en", "hi"]
-        )
-    elif source_type == "website":
-        loader = WebBaseLoader(source)
+def create_rag_from_text(text):
+    """Create RAG from plain text (YouTube transcript paste)"""
+    documents = [Document(page_content=text)]
 
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=1000,
+        chunk_overlap=200
+    )
+    chunks = splitter.split_documents(documents)
+
+    db = FAISS.from_documents(chunks, embeddings)
+
+    retriever = db.as_retriever(
+        search_type="similarity",
+        search_kwargs={"k": 3}
+    )
+
+    return retriever, len(chunks)
+
+
+def create_rag_from_website(url):
+    """Create RAG from website URL"""
+    loader = WebBaseLoader(url)
     documents = loader.load()
 
     splitter = RecursiveCharacterTextSplitter(
@@ -111,42 +125,63 @@ st.divider()
 # Source type selection
 source_type = st.radio(
     "Choose source type:",
-    ["YouTube Video", "Website"],
+    ["YouTube (Paste Transcript)", "Website"],
     horizontal=True
 )
 
-# URL input
-if source_type == "YouTube Video":
-    url = st.text_input(
-        "Paste YouTube URL:",
-        placeholder="https://www.youtube.com/watch?v=..."
+# ─── YouTube Transcript Paste ──────────────────────────────
+if source_type == "YouTube (Paste Transcript)":
+
+    st.info(
+        "📋 **How to get YouTube transcript:**\n"
+        "1. Go to [youtubetranscript.com](https://youtubetranscript.com)\n"
+        "2. Paste your YouTube video URL\n"
+        "3. Copy the transcript\n"
+        "4. Paste it below!"
     )
-    source_key = "youtube"
+
+    transcript_text = st.text_area(
+        "Paste YouTube transcript here:",
+        placeholder="Paste the full transcript text here... (Hindi or English both work!)",
+        height=200
+    )
+
+    if transcript_text:
+        if st.button("🔍 Load Transcript", type="primary"):
+            with st.spinner("Processing transcript... Please wait!"):
+                try:
+                    retriever, chunks = create_rag_from_text(transcript_text)
+                    st.session_state.retriever = retriever
+                    st.session_state.chunks = chunks
+                    st.session_state.source_label = "YouTube Transcript (Pasted)"
+                    st.success(f"✅ Loaded! Created {chunks} chunks!")
+                except Exception as e:
+                    st.error(f"❌ Error: {str(e)}")
+
+# ─── Website URL ───────────────────────────────────────────
 else:
     url = st.text_input(
         "Paste Website URL:",
         placeholder="https://example.com"
     )
-    source_key = "website"
 
-# Load button
-if url:
-    if st.button("🔍 Load Source", type="primary"):
-        with st.spinner("Loading and processing... Please wait!"):
-            try:
-                retriever, chunks = create_rag(url, source_key)
-                st.session_state.retriever = retriever
-                st.session_state.chunks = chunks
-                st.session_state.url = url
-                st.success(f"✅ Loaded! Created {chunks} chunks!")
-            except Exception as e:
-                st.error(f"❌ Error: {str(e)}")
+    if url:
+        if st.button("🔍 Load Website", type="primary"):
+            with st.spinner("Loading website... Please wait!"):
+                try:
+                    retriever, chunks = create_rag_from_website(url)
+                    st.session_state.retriever = retriever
+                    st.session_state.chunks = chunks
+                    st.session_state.source_label = url
+                    st.success(f"✅ Loaded! Created {chunks} chunks!")
+                except Exception as e:
+                    st.error(f"❌ Error: {str(e)}")
 
 st.divider()
 
-# Question input
+# ─── Question Input ────────────────────────────────────────
 if "retriever" in st.session_state:
-    st.markdown(f"**Source:** {st.session_state.url}")
+    st.markdown(f"**Source:** {st.session_state.source_label}")
     st.markdown(f"**Chunks:** {st.session_state.chunks}")
 
     question = st.text_input(
