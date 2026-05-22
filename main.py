@@ -75,7 +75,7 @@ class AskRequest(BaseModel):
 # ─── RAG Function ──────────────────────────────────────────
 def create_rag(url, source_type):
     embeddings = GoogleGenerativeAIEmbeddings(
-        model="models/embedding-001"
+        model="models/text-embedding-004"
     )
 
     if source_type == "youtube":
