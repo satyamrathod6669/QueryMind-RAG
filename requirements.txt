@@ -2,7 +2,7 @@ fastapi
 uvicorn
 langchain
 langchain-community
-langchain-google-genai
+langchain-google-genai==1.0.3
 langchain-text-splitters
 faiss-cpu
 youtube-transcript-api
