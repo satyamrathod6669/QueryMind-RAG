@@ -1,9 +1,11 @@
 streamlit
 langchain
-langchain_community
+langchain-community
 langchain-google-genai
 langchain-text-splitters
-chromadb
+faiss-cpu
 sentence-transformers
 youtube-transcript-api
 beautifulsoup4
+lxml
+google-generativeai
