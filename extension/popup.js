@@ -13,7 +13,7 @@ document.getElementById("loadBtn").addEventListener("click", async () => {
   const loadBtn = document.getElementById("loadBtn");
 
   loadBtn.disabled = true;
-  loadBtn.textContent = "⏳ Loading...";
+  loadBtn.textContent = "Loading...";
   status.textContent = "Reading page content...";
 
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -22,14 +22,14 @@ document.getElementById("loadBtn").addEventListener("click", async () => {
       (response) => {
         if (response && response.content) {
           pageContent = response.content.substring(0, 30000);
-          status.textContent = "✅ Page loaded! Ask your question!";
-          loadBtn.textContent = "✅ Loaded!";
+          status.textContent = "Page loaded! Ask your question!";
+          loadBtn.textContent = "Loaded!";
           document.getElementById("questionInput").style.display = "block";
           document.getElementById("askBtn").style.display = "block";
         } else {
-          status.textContent = "❌ Could not read page!";
+          status.textContent = "Could not read page!";
           loadBtn.disabled = false;
-          loadBtn.textContent = "🔍 Load This Page";
+          loadBtn.textContent = "Load This Page";
         }
       });
   });
@@ -43,12 +43,12 @@ document.getElementById("askBtn").addEventListener("click", async () => {
   const answerDiv = document.getElementById("answer");
 
   if (!question) {
-    status.textContent = "⚠️ Please enter a question!";
+    status.textContent = "Please enter a question!";
     return;
   }
 
   askBtn.disabled = true;
-  askBtn.textContent = "⏳ Thinking...";
+  askBtn.textContent = "Thinking...";
   status.textContent = "";
 
   try {
@@ -60,22 +60,16 @@ document.getElementById("askBtn").addEventListener("click", async () => {
         context: pageContent
       })
     });
+
     const data = await response.json();
     answerDiv.style.display = "block";
-    answerDiv.innerHTML = `
-      <small style="color:#aaa;">
-        Searched for: "${data.rewritten_question}"
-      </small>
-      <br><br>
-      ${data.answer}
-    `;
- 
-    status.textContent = "";
+    // Show raw response for debugging
+    answerDiv.textContent = JSON.stringify(data);
 
   } catch (err) {
-    status.textContent = "❌ Error: " + err.message;
+    status.textContent = "Error: " + err.message;
   }
 
   askBtn.disabled = false;
-  askBtn.textContent = "💬 Ask";
+  askBtn.textContent = "Ask";
 });
