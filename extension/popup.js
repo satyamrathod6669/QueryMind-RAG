@@ -2,12 +2,10 @@ const WORKER_URL = "https://shrill-rice-3aba.rathodsatyamkumar.workers.dev";
 
 let pageContent = "";
 
-// Get current tab URL
 chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
   document.getElementById("currentUrl").textContent = tabs[0].url;
 });
 
-// Load button
 document.getElementById("loadBtn").addEventListener("click", async () => {
   const status = document.getElementById("status");
   const loadBtn = document.getElementById("loadBtn");
@@ -35,7 +33,6 @@ document.getElementById("loadBtn").addEventListener("click", async () => {
   });
 });
 
-// Ask button
 document.getElementById("askBtn").addEventListener("click", async () => {
   const question = document.getElementById("questionInput").value.trim();
   const askBtn = document.getElementById("askBtn");
@@ -60,6 +57,7 @@ document.getElementById("askBtn").addEventListener("click", async () => {
         context: pageContent
       })
     });
+
     const data = await response.json();
     answerDiv.style.display = "block";
     answerDiv.innerHTML = `
@@ -70,8 +68,6 @@ document.getElementById("askBtn").addEventListener("click", async () => {
       ${data.answer}
     `;
 
-    
-  
   } catch (err) {
     status.textContent = "Error: " + err.message;
   }
