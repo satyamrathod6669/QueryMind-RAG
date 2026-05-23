@@ -60,12 +60,18 @@ document.getElementById("askBtn").addEventListener("click", async () => {
         context: pageContent
       })
     });
-
     const data = await response.json();
     answerDiv.style.display = "block";
-    // Show raw response for debugging
-    answerDiv.textContent = JSON.stringify(data);
+    answerDiv.innerHTML = `
+      <small style="color:#aaa;">
+        Searched for: "${data.rewritten_question}"
+      </small>
+      <br><br>
+      ${data.answer}
+    `;
 
+    
+  
   } catch (err) {
     status.textContent = "Error: " + err.message;
   }
