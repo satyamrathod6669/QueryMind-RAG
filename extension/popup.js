@@ -60,10 +60,16 @@ document.getElementById("askBtn").addEventListener("click", async () => {
         context: pageContent
       })
     });
-
     const data = await response.json();
     answerDiv.style.display = "block";
-    answerDiv.textContent = data.answer;
+    answerDiv.innerHTML = `
+      <small style="color:#aaa;">
+        Searched for: "${data.rewritten_question}"
+      </small>
+      <br><br>
+      ${data.answer}
+    `;
+ 
     status.textContent = "";
 
   } catch (err) {
