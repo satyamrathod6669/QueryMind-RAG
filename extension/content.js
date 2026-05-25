@@ -1,24 +1,19 @@
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "getPageContent") {
     
-    // Remove unwanted elements
-    const unwanted = document.querySelectorAll(
-      'script, style, nav, footer, header, iframe, .mw-navigation, #mw-navigation'
-    );
-    unwanted.forEach(el => el.remove());
+    // Get all paragraph text from the page
+    const paragraphs = document.querySelectorAll('p');
+    let content = '';
+    
+    paragraphs.forEach(p => {
+      content += p.innerText + '\n';
+    });
 
-    // Get clean main content
-    const mainContent = 
-      document.querySelector('main') ||
-      document.querySelector('article') ||
-      document.querySelector('#content') ||
-      document.querySelector('.mw-body') ||
-      document.body;
+    // Fallback to body text if paragraphs are empty
+    if (content.trim().length < 100) {
+      content = document.body.innerText;
+    }
 
-    const content = mainContent.innerText
-      .replace(/\n{3,}/g, '\n\n')  // remove extra blank lines
-      .trim();
-
-    sendResponse({ content: content });
+    sendResponse({ content: content.trim() });
   }
 });
