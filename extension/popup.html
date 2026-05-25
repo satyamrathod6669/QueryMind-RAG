@@ -1,72 +1,93 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>QueryMind RAG</title>
+  <meta charset="UTF-8">
+  <title>QueryMind</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       width: 360px;
       padding: 16px;
-      font-family: Arial, sans-serif;
-      background: #1a1a2e;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
       color: #eee;
+      min-height: 200px;
     }
-    h2 {
-      color: #e94560;
+    .header {
       text-align: center;
-      margin-bottom: 4px;
-      font-size: 18px;
+      margin-bottom: 14px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    .logo {
+      font-size: 22px;
+      font-weight: 800;
+      background: linear-gradient(90deg, #e94560, #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 1px;
     }
     .subtitle {
-      text-align: center;
       font-size: 11px;
-      color: #aaa;
-      margin-bottom: 12px;
+      color: #888;
+      margin-top: 2px;
     }
     .url-bar {
-      background: #16213e;
-      padding: 8px 10px;
-      border-radius: 6px;
+      background: rgba(255,255,255,0.05);
+      padding: 7px 10px;
+      border-radius: 8px;
       font-size: 11px;
       color: #aaa;
       margin-bottom: 10px;
       word-break: break-all;
-      border-left: 3px solid #e94560;
+      border: 1px solid rgba(255,255,255,0.08);
     }
-    .source-badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 10px;
-      font-size: 11px;
-      font-weight: bold;
-      margin-bottom: 10px;
+    .url-label {
+      font-size: 10px;
+      color: #555;
+      margin-bottom: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
-    .badge-youtube { background: #ff0000; color: white; }
-    .badge-website { background: #0f3460; color: white; }
     button {
       width: 100%;
       padding: 10px;
       margin-bottom: 8px;
       border: none;
-      border-radius: 6px;
+      border-radius: 8px;
       cursor: pointer;
-      font-size: 14px;
-      font-weight: bold;
-      transition: opacity 0.2s;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+      letter-spacing: 0.3px;
     }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
-    #loadBtn { background: #e94560; color: white; }
-    #askBtn { background: #0f3460; color: white; }
+    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    button:hover:not(:disabled) { transform: translateY(-1px); }
+    #loadBtn {
+      background: linear-gradient(90deg, #e94560, #a855f7);
+      color: white;
+      box-shadow: 0 4px 15px rgba(233,69,96,0.3);
+    }
+    #askBtn {
+      background: linear-gradient(90deg, #4ecca3, #0f3460);
+      color: white;
+      box-shadow: 0 4px 15px rgba(78,204,163,0.2);
+    }
     textarea {
       width: 100%;
-      padding: 8px;
-      border-radius: 6px;
-      border: 1px solid #333;
-      background: #16213e;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
       color: #eee;
       font-size: 13px;
       resize: none;
       margin-bottom: 8px;
+      outline: none;
+      transition: border 0.2s;
+    }
+    textarea:focus {
+      border-color: #a855f7;
     }
     #status {
       font-size: 12px;
@@ -76,56 +97,80 @@
       color: #4ecca3;
     }
     #status.error { color: #e94560; }
-    #answer {
-      background: #16213e;
-      padding: 10px;
-      border-radius: 6px;
-      font-size: 13px;
-      line-height: 1.6;
-      margin-top: 8px;
+    .answer-label {
+      font-size: 10px;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 5px;
       display: none;
-      max-height: 220px;
-      overflow-y: auto;
-      border-left: 3px solid #4ecca3;
     }
-    .divider {
-      border: none;
-      border-top: 1px solid #333;
-      margin: 10px 0;
+    #answer {
+      background: rgba(78,204,163,0.05);
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      line-height: 1.7;
+      margin-top: 4px;
+      display: none;
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid rgba(78,204,163,0.2);
+    }
+    #answer::-webkit-scrollbar { width: 4px; }
+    #answer::-webkit-scrollbar-thumb { background: #a855f7; border-radius: 4px; }
+    .searched-for {
+      font-size: 10px;
+      color: #666;
+      margin-bottom: 6px;
+      font-style: italic;
     }
     .footer {
       text-align: center;
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+    .footer-text {
       font-size: 10px;
-      color: #555;
-      margin-top: 8px;
+      color: #444;
+    }
+    .footer-name {
+      color: #a855f7;
+      font-weight: 600;
+    }
+    .powered {
+      font-size: 10px;
+      color: #333;
+      margin-bottom: 3px;
     }
   </style>
 </head>
 <body>
 
-  <h2>🤖 QueryMind</h2>
-  <p class="subtitle">Ask anything from this page!</p>
+  <div class="header">
+    <div class="logo">⚡ QueryMind</div>
+    <div class="subtitle">Ask anything from this page</div>
+  </div>
 
-  <div class="url-bar" id="currentUrl">Detecting page...</div>
-  <div id="sourceBadge"></div>
+  <div class="url-label">Current Page</div>
+  <div class="url-bar" id="currentUrl">Detecting...</div>
 
   <button id="loadBtn">🔍 Load This Page</button>
   <div id="status"></div>
 
-  <hr class="divider">
-
   <textarea id="questionInput" rows="3"
     placeholder="Ask your question..."
     style="display:none"></textarea>
-  <button id="askBtn" style="display:none">💬 Ask</button>
+  <button id="askBtn" style="display:none">✨ Ask QueryMind</button>
 
+  <div class="answer-label" id="answerLabel">Answer</div>
   <div id="answer"></div>
 
-  <p class="footer">Powered by Gemini AI ✨</p>
-
-  <div style="text-align:center; margin-top:10px; font-size:11px; color:#666;">
-  Developed by <span style="color:#e94560;">Satyam Rathod</span>
-</div>
+  <div class="footer">
+    <div class="powered">Powered by Groq AI</div>
+    <div class="footer-text">Built by <span class="footer-name">Satyam Rathod</span></div>
+  </div>
 
   <script src="popup.js"></script>
 </body>
