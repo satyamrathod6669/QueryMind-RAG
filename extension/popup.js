@@ -19,7 +19,7 @@ document.getElementById("loadBtn").addEventListener("click", async () => {
       { action: "getPageContent" },
       (response) => {
         if (response && response.content) {
-          pageContent = response.content.substring(0, 15000);
+          pageContent = response.content.substring(0, 50000);
           status.textContent = "Page loaded! Ask your question!";
           loadBtn.textContent = "Loaded!";
           document.getElementById("questionInput").style.display = "block";
