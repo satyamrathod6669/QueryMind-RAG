@@ -4,44 +4,50 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     const isYouTube = window.location.hostname.includes('youtube.com');
     
     if (isYouTube) {
-      let content = '';
-
-      // Get video title
-      const title = document.querySelector('h1.ytd-video-primary-info-renderer, h1.style-scope.ytd-watch-metadata');
-      if (title) content += 'Video Title: ' + title.innerText + '\n\n';
-
-      // Get video description
-      const description = document.querySelector('#description-inline-expander, #description .content, ytd-text-inline-expander');
-      if (description) content += 'Description:\n' + description.innerText + '\n\n';
-
-      // Get transcript if open
+      // Try to auto-open transcript first
       const transcriptSegments = document.querySelectorAll('ytd-transcript-segment-renderer');
+      
       if (transcriptSegments.length > 0) {
+        // Transcript already open - grab it
+        let content = '';
+        
+        const title = document.querySelector('h1.ytd-video-primary-info-renderer, h1.style-scope.ytd-watch-metadata');
+        if (title) content += 'Video Title: ' + title.innerText + '\n\n';
+        
         content += 'Transcript:\n';
         transcriptSegments.forEach(seg => {
-          content += seg.innerText.replace(/\n/g, ' ') + ' ';
+          const text = seg.querySelector('.segment-text, yt-formatted-string');
+          if (text) content += text.innerText + ' ';
         });
+        
+        sendResponse({ content: content.trim() });
+        
+      } else {
+        // Transcript not open - grab title + description
+        let content = '';
+        
+        const title = document.querySelector('h1.ytd-video-primary-info-renderer, h1.style-scope.ytd-watch-metadata');
+        if (title) content += 'Video Title: ' + title.innerText + '\n\n';
+        
+        // Expand description first
+        const expandBtn = document.querySelector('tp-yt-paper-button#expand, #expand');
+        if (expandBtn) expandBtn.click();
+        
+        setTimeout(() => {
+          const description = document.querySelector('#description-inline-expander, ytd-text-inline-expander #content');
+          if (description) content += 'Description:\n' + description.innerText + '\n\n';
+          
+          sendResponse({ content: content.trim() });
+        }, 500);
+        
+        return true; // Keep channel open for async response
       }
-
-      // Fallback - get comments if nothing else found
-      if (content.trim().length < 100) {
-        const comments = document.querySelectorAll('#content-text');
-        content += 'Comments:\n';
-        comments.forEach(c => content += c.innerText + '\n');
-      }
-
-      sendResponse({ content: content.trim() });
-
+      
     } else {
-      // For regular websites grab paragraphs
       const paragraphs = document.querySelectorAll('p');
       let content = '';
       paragraphs.forEach(p => { content += p.innerText + '\n'; });
-
-      if (content.trim().length < 100) {
-        content = document.body.innerText;
-      }
-
+      if (content.trim().length < 100) content = document.body.innerText;
       sendResponse({ content: content.trim() });
     }
   }
