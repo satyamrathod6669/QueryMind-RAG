@@ -1,21 +1,20 @@
 const WORKER_URL = "https://shrill-rice-3aba.rathodsatyamkumar.workers.dev";
-
 let pageContent = "";
 let currentPageUrl = "";
 
-
+// Get current tab URL
 chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
   const url = tabs[0].url;
+  currentPageUrl = url;
   document.getElementById("currentUrl").textContent = url;
-  currentPageUrl = tabs[0].url;
 
-  
   if (url.includes('youtube.com/watch')) {
-    document.getElementById("status").textContent = "💡 For YouTube: click '...' under video → Show transcript first!";
+    document.getElementById("status").textContent = "💡 YouTube detected! Loading transcript automatically.";
     document.getElementById("status").style.color = "#f0a500";
   }
 });
 
+// Load button
 document.getElementById("loadBtn").addEventListener("click", async () => {
   const status = document.getElementById("status");
   const loadBtn = document.getElementById("loadBtn");
@@ -43,6 +42,7 @@ document.getElementById("loadBtn").addEventListener("click", async () => {
   });
 });
 
+// Ask button
 document.getElementById("askBtn").addEventListener("click", async () => {
   const question = document.getElementById("questionInput").value.trim();
   const askBtn = document.getElementById("askBtn");
@@ -64,18 +64,17 @@ document.getElementById("askBtn").addEventListener("click", async () => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         question: question,
-        context: pageContent
-        url: tabs[0].url
+        context: pageContent,
+        url: currentPageUrl
       })
     });
 
     const data = await response.json();
     answerDiv.style.display = "block";
     answerDiv.innerHTML = `
-      <small style="color:#aaa;">
+      <div style="font-size:10px; color:#666; margin-bottom:6px; font-style:italic;">
         Searched for: "${data.rewritten_question}"
-      </small>
-      <br><br>
+      </div>
       ${data.answer}
     `;
 
@@ -84,5 +83,5 @@ document.getElementById("askBtn").addEventListener("click", async () => {
   }
 
   askBtn.disabled = false;
-  askBtn.textContent = "Ask";
+  askBtn.textContent = "✨ Ask QueryMind";
 });
