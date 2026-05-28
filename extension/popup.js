@@ -68,12 +68,22 @@ document.getElementById("askBtn").addEventListener("click", async () => {
 
     const data = await response.json();
     answerDiv.style.display = "block";
-    answerDiv.innerHTML = `
+   answerDiv.innerHTML = `
       <div style="font-size:10px; color:#666; margin-bottom:6px; font-style:italic;">
         Searched for: "${data.rewritten_question}"
       </div>
       ${data.answer}
     `;
+    
+    // Highlight source on page
+    if (data.source) {
+      chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        chrome.tabs.sendMessage(tabs[0].id, {
+          action: "highlightText",
+          text: data.source
+        });
+      });
+    }
 
   } catch (err) {
     status.textContent = "❌ Error: " + err.message;
