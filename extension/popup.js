@@ -2,7 +2,6 @@ const WORKER_URL = "https://shrill-rice-3aba.rathodsatyamkumar.workers.dev";
 let pageContent = "";
 let currentPageUrl = "";
 
-// Get current tab URL
 chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
   const url = tabs[0].url;
   currentPageUrl = url;
@@ -14,13 +13,12 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
   }
 });
 
-// Load button
 document.getElementById("loadBtn").addEventListener("click", async () => {
   const status = document.getElementById("status");
   const loadBtn = document.getElementById("loadBtn");
 
   loadBtn.disabled = true;
-  loadBtn.textContent = "Loading...";
+  loadBtn.innerHTML = '<span class="spinner"></span> Loading...';
   status.textContent = "Reading page content...";
 
   chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -29,20 +27,19 @@ document.getElementById("loadBtn").addEventListener("click", async () => {
       (response) => {
         if (response && response.content) {
           pageContent = response.content;
-          status.textContent = "Page loaded! Ask your question!";
-          loadBtn.textContent = "Loaded!";
+          status.textContent = "✅ Page loaded! Ask your question!";
+          loadBtn.innerHTML = "✅ Loaded!";
           document.getElementById("questionInput").style.display = "block";
           document.getElementById("askBtn").style.display = "block";
         } else {
-          status.textContent = "Could not read page!";
+          status.textContent = "❌ Could not read page!";
           loadBtn.disabled = false;
-          loadBtn.textContent = "Load This Page";
+          loadBtn.innerHTML = "🔍 Load This Page";
         }
       });
   });
 });
 
-// Ask button
 document.getElementById("askBtn").addEventListener("click", async () => {
   const question = document.getElementById("questionInput").value.trim();
   const askBtn = document.getElementById("askBtn");
@@ -55,7 +52,7 @@ document.getElementById("askBtn").addEventListener("click", async () => {
   }
 
   askBtn.disabled = true;
-  askBtn.textContent = "Thinking...";
+  askBtn.innerHTML = '<span class="spinner"></span> Thinking...';
   status.textContent = "";
 
   try {
@@ -79,9 +76,9 @@ document.getElementById("askBtn").addEventListener("click", async () => {
     `;
 
   } catch (err) {
-    status.textContent = "Error: " + err.message;
+    status.textContent = "❌ Error: " + err.message;
   }
 
   askBtn.disabled = false;
-  askBtn.textContent = "✨ Ask QueryMind";
+  askBtn.innerHTML = "✨ Ask QueryMind";
 });
