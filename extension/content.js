@@ -4,8 +4,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     const isYouTube = window.location.hostname.includes('youtube.com');
     
     if (isYouTube) {
-
-      // Extract caption URL from page scripts (already loaded in browser!)
       let captionUrl = null;
       const scripts = document.querySelectorAll('script');
       
@@ -13,20 +11,23 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         const text = script.textContent;
         const match = text.match(/"captionTracks":\[{"baseUrl":"([^"]+)"/);
         if (match) {
-          captionUrl = match[1].replace(/\\u0026/g, '&') + '&fmt=json3';
+          captionUrl = match[1].replace(/\\u0026/g, '&');
           break;
         }
       }
 
       if (captionUrl) {
         fetch(captionUrl)
-          .then(r => r.json())
-          .then(data => {
-            const transcript = data.events
-              .filter(e => e.segs)
-              .map(e => e.segs.map(s => s.utf8).join(''))
-              .join(' ')
-              .replace(/\n/g, ' ')
+          .then(r => r.text())
+          .then(xml => {
+            const transcript = xml
+              .replace(/<[^>]+>/g, ' ')
+              .replace(/&amp;/g, '&')
+              .replace(/&lt;/g, '<')
+              .replace(/&gt;/g, '>')
+              .replace(/&#39;/g, "'")
+              .replace(/&quot;/g, '"')
+              .replace(/\s+/g, ' ')
               .trim();
 
             const title = document.querySelector('h1.ytd-video-primary-info-renderer, h1.style-scope.ytd-watch-metadata');
