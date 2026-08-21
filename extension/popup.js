@@ -69,14 +69,12 @@ document.getElementById("askBtn").addEventListener("click", async () => {
 
     const data = await response.json();
     
-    // Catch backend errors immediately to prevent "undefined" UI
     if (data.error) {
       throw new Error(data.error);
     }
 
     answerDiv.style.display = "block";
     
-    // Render the Answer and the Metrics Card
     answerDiv.innerHTML = `
       <div style="font-size: 14px; margin-bottom: 12px;">
         ${data.answer}
@@ -90,9 +88,13 @@ document.getElementById("askBtn").addEventListener("click", async () => {
             <span style="font-size: 12px; color: #ccc;">Groundedness</span>
             <span style="font-size: 12px; font-weight: bold; color: ${data.groundedness_score > 80 ? '#4caf50' : '#ff9800'};">${data.groundedness_score}%</span>
           </div>
-          <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <span style="font-size: 12px; color: #ccc;">Context Relevance</span>
             <span style="font-size: 12px; font-weight: bold; color: ${data.context_relevance > 80 ? '#4caf50' : '#ff9800'};">${data.context_relevance}%</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 12px; color: #ccc;">Answer Relevance</span>
+            <span style="font-size: 12px; font-weight: bold; color: ${data.answer_relevance > 80 ? '#4caf50' : '#ff9800'};">${data.answer_relevance}%</span>
           </div>
       </div>
     `;
