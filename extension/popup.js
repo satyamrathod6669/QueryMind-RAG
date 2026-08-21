@@ -54,6 +54,7 @@ document.getElementById("askBtn").addEventListener("click", async () => {
   askBtn.disabled = true;
   askBtn.innerHTML = '<span class="spinner"></span> Thinking...';
   status.textContent = "";
+  answerDiv.style.display = "none";
 
   try {
     const response = await fetch(WORKER_URL, {
@@ -67,6 +68,12 @@ document.getElementById("askBtn").addEventListener("click", async () => {
     });
 
     const data = await response.json();
+    
+    // Catch backend errors immediately to prevent "undefined" UI
+    if (data.error) {
+      throw new Error(data.error);
+    }
+
     answerDiv.style.display = "block";
     
     // Render the Answer and the Metrics Card
