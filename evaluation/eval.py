@@ -57,11 +57,14 @@ def run_live_ragas_audit():
     context_str = "\n\n".join(retrieved_contexts_list)
     final_prompt = prompt_template.format(context=context_str, question=test_question)
     live_response = llm.invoke(final_prompt)
+    
+    # Ensure it's explicitly extracted as a string
+    response_text = str(live_response.content)
 
     # 4. Format live outputs into RAGAS dataset format
     data = {
         "user_input": [test_question],
-        "response": [live_response.content],
+        "response": [response_text],
         "retrieved_contexts": [retrieved_contexts_list],
         "reference": [reference_answer]
     }
