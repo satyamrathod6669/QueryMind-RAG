@@ -2,6 +2,8 @@ import os
 import pandas as pd
 from datasets import Dataset
 from dotenv import load_dotenv
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 # Load API keys from the .env file
 load_dotenv()
