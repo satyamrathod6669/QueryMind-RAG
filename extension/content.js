@@ -1,6 +1,6 @@
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "getPageContent") {
-    
+     
     const isYouTube = window.location.hostname.includes('youtube.com');
     
     if (isYouTube) {
