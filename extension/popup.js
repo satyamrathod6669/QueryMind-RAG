@@ -107,7 +107,7 @@ document.getElementById("askBtn").addEventListener("click", async () => {
     info.style.cssText = "font-size:11px;color:#888;";
     const r = data.retrieval;
     info.textContent = r
-      ? `Searched ${r.used_chunks} of ${r.total_chunks} sections (${r.text_source})`
+      ? `Searched ${r.used_chunks} of ${r.total_chunks} sections (${r.text_source}, ${r.method})`
       : "";
 
     answerDiv.append(ans, info);
