@@ -121,6 +121,17 @@ document.getElementById("askBtn").addEventListener("click", async () => {
         const item = document.createElement("div");
         item.style.cssText = "font-size:12px;color:#bbb;border-left:2px solid #a855f7;padding:4px 8px;margin-top:6px;";
         item.textContent = `[${src.n}] ${src.highlight}`;
+        item.style.cursor = "pointer";
+        item.title = "Click to highlight on the page";
+        item.addEventListener("click", () => {
+          chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            chrome.tabs.sendMessage(tabs[0].id, { action: "highlight", text: src.highlight }, (res) => {
+              if (chrome.runtime.lastError || !res || !res.found) {
+                status.textContent = "Could not find this text on the page";
+              }
+            });
+          });
+        });
         answerDiv.append(item);
       });
     }
