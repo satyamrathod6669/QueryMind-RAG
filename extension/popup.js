@@ -112,6 +112,19 @@ document.getElementById("askBtn").addEventListener("click", async () => {
 
     answerDiv.append(ans, info);
 
+    if (data.sources && data.sources.length) {
+      const label = document.createElement("div");
+      label.style.cssText = "font-size:10px;color:#777;text-transform:uppercase;letter-spacing:0.5px;margin-top:10px;";
+      label.textContent = "Sources";
+      answerDiv.append(label);
+      data.sources.forEach((src) => {
+        const item = document.createElement("div");
+        item.style.cssText = "font-size:12px;color:#bbb;border-left:2px solid #a855f7;padding:4px 8px;margin-top:6px;";
+        item.textContent = `[${src.n}] ${src.highlight}`;
+        answerDiv.append(item);
+      });
+    }
+
   } catch (err) {
     status.textContent = "❌ Error: " + err.message;
   }
