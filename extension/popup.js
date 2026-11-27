@@ -135,6 +135,13 @@ document.getElementById("askBtn").addEventListener("click", async () => {
 
     answerDiv.append(ans, info);
 
+    if (r && r.transcript_note) {
+      const note = document.createElement("div");
+      note.style.cssText = "font-size:11px;color:#ff9800;margin-top:4px;";
+      note.textContent = "Transcript problem: " + r.transcript_note;
+      answerDiv.append(note);
+    }
+
     if (data.sources && data.sources.length) {
       const label = document.createElement("div");
       label.style.cssText = "font-size:10px;color:#777;text-transform:uppercase;letter-spacing:0.5px;margin-top:10px;";
