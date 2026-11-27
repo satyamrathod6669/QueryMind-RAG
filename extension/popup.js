@@ -24,6 +24,29 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
   }
 });
 
+async function fetchScores(question, answer, excerpts) {
+  const res = await fetch(WORKER_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ mode: "judge", question, answer, excerpts })
+  });
+  return res.json();
+}
+
+function scoreRow(label, value) {
+  const row = document.createElement("div");
+  row.style.cssText = "display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;";
+  const name = document.createElement("span");
+  name.style.color = "#ccc";
+  name.textContent = label;
+  const val = document.createElement("span");
+  val.style.fontWeight = "bold";
+  val.style.color = value === null ? "#888" : value >= 80 ? "#4caf50" : "#ff9800";
+  val.textContent = value === null ? "n/a" : value + "%";
+  row.append(name, val);
+  return row;
+}
+
 document.getElementById("loadBtn").addEventListener("click", async () => {
   const status = document.getElementById("status");
   const loadBtn = document.getElementById("loadBtn");
@@ -135,6 +158,35 @@ document.getElementById("askBtn").addEventListener("click", async () => {
         answerDiv.append(item);
       });
     }
+
+    const scoreBox = document.createElement("div");
+    scoreBox.style.cssText = "background:#1a1a1a;padding:10px;border-radius:8px;border:1px solid #333;margin-top:12px;";
+    const scoreTitle = document.createElement("div");
+    scoreTitle.style.cssText = "font-size:10px;color:#888;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;";
+    scoreTitle.textContent = "Answer quality (LLM-judged)";
+    const scoreBody = document.createElement("div");
+    scoreBody.style.cssText = "font-size:12px;color:#888;";
+    scoreBody.textContent = "Checking answer...";
+    scoreBox.append(scoreTitle, scoreBody);
+    answerDiv.append(scoreBox);
+
+    fetchScores(question, data.answer, data.context_chunks || [])
+      .then((sc) => {
+        if (sc.error) throw new Error(sc.error);
+        scoreBody.textContent = "";
+        scoreBody.append(
+          scoreRow("Faithfulness", sc.faithfulness),
+          scoreRow("Context relevance", sc.context_relevance),
+          scoreRow("Answer relevance", sc.answer_relevance)
+        );
+        if (sc.unsupported && sc.unsupported.length) {
+          const warn = document.createElement("div");
+          warn.style.cssText = "font-size:11px;color:#ff9800;margin-top:6px;";
+          warn.textContent = "Not found in source: " + sc.unsupported.join("; ");
+          scoreBody.append(warn);
+        }
+      })
+      .catch(() => { scoreBody.textContent = "Scores unavailable"; });
 
   } catch (err) {
     status.textContent = "❌ Error: " + err.message;
